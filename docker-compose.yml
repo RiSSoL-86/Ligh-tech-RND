@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - "pg_data:/var/lib/postgresql/data"
+    networks:
+      - app_network
+
+  service:
+    container_name: app_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${SERVICE_EXTERNAL_PORT}:5000"
+    depends_on:
+      db:
+        condition: service_started
+    networks:
+      - app_network
+    volumes:
+      - .:/app:delegated
+  
+volumes:
+  pg_data: {}
+
+networks:
+  app_network:
+    driver: bridge
+    name: "app_network"

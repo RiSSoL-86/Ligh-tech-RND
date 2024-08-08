@@ -1,0 +1,47 @@
+name: CI
+
+on: 
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      id: setup-python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install and configure Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.1
+
+    - name: Install project
+      run: poetry install --no-interaction
+
+    - name: Create env file
+      run: |
+        touch .env
+        POSTGRES_HOST=db
+        echo POSTGRES_PORT=5432 >> .env
+        echo POSTGRES_DB=test >> .env
+        echo POSTGRES_USER=test_user >> .env
+        echo POSTGRES_PASSWORD=test_password >> .env
+        echo SECRET_KEY='django-insecure-tvgli$=*m)+jv)xegdy6k*aj&p)hlb3rh0egm3#=u0+oj@5!s_' >> .env
+        echo DEBUG=True >> .env
+        echo SERVICE_EXTERNAL_PORT=8000 >> .env
+        cat .env
+
+    - name: Ruff linting
+      run: |
+        poetry run ruff check .
